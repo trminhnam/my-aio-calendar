@@ -49,6 +49,8 @@ def display_previous_lectures():
     hide_learned_lectures = st.checkbox('Hide learned lectures')
     if hide_learned_lectures:
         data = data[data['LEARNED'] == '❌']
+        
+    data.sort_values(by=[DATE, WEEKDAY], inplace=True, ascending=False)
 
     st.dataframe(
         data.loc[:, ['NGÀY', 'THỨ', 'CÔNG_VIỆC', 'LEARNED', 'LINK', 'ĐẢM_NHẬN']]
@@ -67,6 +69,7 @@ st.info('✨ This is a custom Streamlit app that uses Google Sheets as a databas
 
 def check_password():
     """Returns `True` if the user had the correct password."""
+    _, input_password_col, _ = st.columns([1, 1, 1])
 
     def password_entered():
         """Checks whether a password entered by the user is correct."""
@@ -75,23 +78,23 @@ def check_password():
             del st.session_state["password"]  # don't store password
         else:
             st.session_state["password_correct"] = False
-
-    if "password_correct" not in st.session_state:
-        # First run, show input for password.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        return False
-    elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        st.error("😕 Password incorrect")
-        return False
-    else:
-        # Password correct.
-        return True
+    with input_password_col:
+        if "password_correct" not in st.session_state:
+            # First run, show input for password.
+            st.text_input(
+                "Password", type="password", on_change=password_entered, key="password"
+            )
+            return False
+        elif not st.session_state["password_correct"]:
+            # Password not correct, show input + error.
+            st.text_input(
+                "Password", type="password", on_change=password_entered, key="password"
+            )
+            st.error("😕 Password incorrect")
+            return False
+        else:
+            # Password correct.
+            return True
 
 if check_password():
     # load data and preprocessing dataframe
