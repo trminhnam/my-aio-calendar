@@ -35,7 +35,7 @@ def blur_learned_lessons(s):
     Returns:
         _type_: _description_
     """
-    return ['background-color: lightgray']*len(s) if s['CÔNG_VIỆC'] in learned_lectures.keys() else ['background-color: white']*len(s)
+    return ['background-color: lightgray']*len(s) if learned_lectures.get(s['CÔNG_VIỆC'], False) else ['background-color: white']*len(s)
 
 def display_previous_lectures():
     learned_lectures = load_learned_lectures()
@@ -44,7 +44,7 @@ def display_previous_lectures():
         & (df[DATE] > date(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day) 
            - pd.Timedelta(days=max_elements))
     ].copy()
-    data['LEARNED'] = data['CÔNG_VIỆC'].apply(lambda x: "✅" if x in learned_lectures else "❌")
+    data['LEARNED'] = data['CÔNG_VIỆC'].apply(lambda x: "✅" if learned_lectures.get(x, False) else "❌")
 
     hide_learned_lectures = st.checkbox('Hide learned lectures')
     if hide_learned_lectures:
@@ -124,14 +124,23 @@ if check_password():
             & (df[DATE] > date(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day) 
             - pd.Timedelta(days=max_elements))
         ].copy()
-        data['LEARNED'] = data['CÔNG_VIỆC'].apply(lambda x: "✅" if x in learned_lectures else "❌")
+        data['LEARNED'] = data['CÔNG_VIỆC'].apply(lambda x: "✅" if learned_lectures.get(x, False) else "❌")
         
-        selection_list = [item for item in data['CÔNG_VIỆC'].unique() if item not in learned_lectures]
-        marked_learned = st.selectbox('Select a lecture to mark as learned', selection_list)
-        if st.button('Mark as learned'):
-            learned_lectures[marked_learned] = True
-            with open(os.path.join('data', 'learned.json'), 'w') as f:
-                json.dump(learned_lectures, f)
-            display_previous_lectures()
+        selection_list = [item for item in data['CÔNG_VIỆC'].unique()]
+        marked_learned = st.selectbox('Select a lecture to take action', selection_list)
+        radio = st.radio('Select an action', ['Mark as learned', 'Mark as not learned'])
+        action = st.button('Take action')
+
+        if action:
+            if radio == 'Mark as learned':
+                learned_lectures[marked_learned] = True
+                with open(os.path.join('data', 'learned.json'), 'w') as f:
+                    json.dump(learned_lectures, f, indent=4)
+                display_previous_lectures()
+            else:
+                learned_lectures[marked_learned] = False
+                with open(os.path.join('data', 'learned.json'), 'w') as f:
+                    json.dump(learned_lectures, f, indent=4)
+                display_previous_lectures()
         else:
             display_previous_lectures()
