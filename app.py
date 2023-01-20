@@ -56,7 +56,6 @@ def display_previous_lectures():
         data.loc[:, ['NGÀY', 'THỨ', 'CÔNG_VIỆC', 'LEARNED', 'LINK', 'ĐẢM_NHẬN']]
         .style.apply(blur_learned_lessons, axis=1))
 
-
 st.set_page_config(
     page_title="AIO 2022 Schedule",
     page_icon="📅",
@@ -81,16 +80,18 @@ def check_password():
 
     if "password_correct" not in st.session_state:
         # First run, show input for password.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
+        with input_password_col:
+            st.text_input(
+                "Password", type="password", on_change=password_entered, key="password"
+            )
         return False
     elif not st.session_state["password_correct"]:
         # Password not correct, show input + error.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        st.error("😕 Password incorrect")
+        with input_password_col:
+            st.text_input(
+                "Password", type="password", on_change=password_entered, key="password"
+            )
+            st.error("😕 Password incorrect")
         return False
     else:
         # Password correct.
@@ -104,7 +105,7 @@ if check_password():
         df = pd.DataFrame(rows,)
         # df.set_index('CÔNG_VIỆC', inplace=True)
         df.drop(columns=['THÁNG', 'TUẦN',], inplace=True)
-        df.style.hide_index()
+        # df.style.hide_index()
         df[DATE_AND_TIME] = pd.to_datetime(df[DATE_AND_TIME], format=r'%d/%m/%Y %H:%M:%S')
         df[DATE] = pd.to_datetime(df[DATE_AND_TIME], format=r'%d/%m/%Y').dt.date
 
