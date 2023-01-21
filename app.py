@@ -46,10 +46,29 @@ def display_previous_lectures():
     ].copy()
     data['LEARNED'] = data['CÔNG_VIỆC'].apply(lambda x: "✅" if learned_lectures.get(x, False) else "❌")
 
-    hide_learned_lectures = st.checkbox('Hide learned lectures')
-    if hide_learned_lectures:
-        data = data[data['LEARNED'] == '❌']
-        
+    with st.expander("Filter by learned/unlearned lectures", expanded=True):
+        # show_all_col, show_learned_col, show_unlearned_col, blank_col = st.columns([1, 1, 1, 1])
+        # with show_all_col:
+        #     show_all = st.checkbox('Show all lectures', value=True)
+        # with show_learned_col:
+        #     show_learned = st.checkbox('Show learned lectures', value=False)
+        #     if show_learned and not show_all:
+        #         data = data[data['LEARNED'] == '✅']
+        # with show_unlearned_col:
+        #     show_unlearned = st.checkbox('Show unlearned lectures', value=False)
+        #     if show_unlearned and not show_learned and not show_all:
+        #         data = data[data['LEARNED'] == '❌']
+        # with blank_col:
+        #     st.write(" ")
+        filter_selection = st.radio(
+            "Choose a filter", 
+            ('Show all lectures', 'Show learned lectures', 'Show unlearned lectures')
+        )
+        if filter_selection == 'Show learned lectures':
+            data = data[data['LEARNED'] == '✅']
+        elif filter_selection == 'Show unlearned lectures':
+            data = data[data['LEARNED'] == '❌']
+
     data.sort_values(by=[DATE, WEEKDAY], inplace=True, ascending=False)
 
     st.dataframe(
@@ -67,7 +86,11 @@ st.title("AIO 2022 Schedule")
 st.info('✨ This is a custom Streamlit app that uses Google Sheets as a database. ✨')
 
 def check_password():
-    """Returns `True` if the user had the correct password."""
+    """Returns `True` if the user had the correct password.
+
+    Returns:
+        bool: `True` if the user had the correct password. `False` otherwise.
+    """
     _, input_password_col, _ = st.columns([1, 1, 1])
 
     def password_entered():
@@ -109,10 +132,10 @@ if check_password():
         df[DATE_AND_TIME] = pd.to_datetime(df[DATE_AND_TIME], format=r'%d/%m/%Y %H:%M:%S')
         df[DATE] = pd.to_datetime(df[DATE_AND_TIME], format=r'%d/%m/%Y').dt.date
 
-
     next_lectures, previous_lectures = st.tabs(['Next Lectures', 'Previous Lectures'])
     learned_lectures = load_learned_lectures()
 
+    # display next lectures tab
     with next_lectures:
         max_elements = st.slider('Max number of days forward', min_value=7, max_value=100, value=14, step=1)
         data = df[(df[DATE] >= date(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day))
@@ -121,6 +144,7 @@ if check_password():
             ].drop(columns=['THỜI_HẠN', "HOÀN_THÀNH", "THỜI_GIAN"]).sort_values(by=DATE)
         st.dataframe(data.loc[:, ['NGÀY', 'THỨ', 'CÔNG_VIỆC', 'LINK', 'ĐẢM_NHẬN']])
 
+    # display previous lectures tab
     with previous_lectures:
         max_elements = st.slider('Max number of days backward', min_value=7, max_value=100, value=14, step=1)
         data = df[
@@ -130,10 +154,11 @@ if check_password():
         ].copy()
         data['LEARNED'] = data['CÔNG_VIỆC'].apply(lambda x: "✅" if learned_lectures.get(x, False) else "❌")
         
-        selection_list = [item for item in data['CÔNG_VIỆC'].unique()]
-        marked_learned = st.selectbox('Select a lecture to take action', selection_list)
-        radio = st.radio('Select an action', ['Mark as learned', 'Mark as not learned'])
-        action = st.button('Take action')
+        with st.expander("Mark as learned/unlearned"):
+            selection_list = [item for item in data['CÔNG_VIỆC'].unique()]
+            marked_learned = st.selectbox('Select a lecture to take action', selection_list)
+            radio = st.radio('Select an action', ['Mark as learned', 'Mark as not learned'])
+            action = st.button('Take action')
 
         if action:
             if radio == 'Mark as learned':
