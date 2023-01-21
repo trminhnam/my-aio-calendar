@@ -46,6 +46,7 @@ def display_previous_lectures():
     ].copy()
     data['LEARNED'] = data['CÔNG_VIỆC'].apply(lambda x: "✅" if learned_lectures.get(x, False) else "❌")
 
+    st.markdown(f"#### 🝖 Filter by learned/unlearned lectures")
     with st.expander("Filter by learned/unlearned lectures", expanded=True):
         # show_all_col, show_learned_col, show_unlearned_col, blank_col = st.columns([1, 1, 1, 1])
         # with show_all_col:
@@ -62,7 +63,8 @@ def display_previous_lectures():
         #     st.write(" ")
         filter_selection = st.radio(
             "Choose a filter", 
-            ('Show all lectures', 'Show learned lectures', 'Show unlearned lectures')
+            ('Show all lectures', 'Show learned lectures', 'Show unlearned lectures'),
+            index=0
         )
         if filter_selection == 'Show learned lectures':
             data = data[data['LEARNED'] == '✅']
@@ -71,9 +73,13 @@ def display_previous_lectures():
 
     data.sort_values(by=[DATE, WEEKDAY], inplace=True, ascending=False)
 
-    st.dataframe(
+    st.markdown(f"#### 📚 Previous lectures (last {max_elements} days)")
+    if filter_selection != 'Show learned lectures':
+        st.dataframe(
         data.loc[:, ['NGÀY', 'THỨ', 'CÔNG_VIỆC', 'LEARNED', 'LINK', 'ĐẢM_NHẬN']]
         .style.apply(blur_learned_lessons, axis=1))
+    else:
+        st.dataframe(data.loc[:, ['NGÀY', 'THỨ', 'CÔNG_VIỆC', 'LEARNED', 'LINK', 'ĐẢM_NHẬN']])
 
 st.set_page_config(
     page_title="AIO 2022 Schedule",
@@ -154,6 +160,7 @@ if check_password():
         ].copy()
         data['LEARNED'] = data['CÔNG_VIỆC'].apply(lambda x: "✅" if learned_lectures.get(x, False) else "❌")
         
+        st.markdown("#### ✎ Mark as learned/unlearned")
         with st.expander("Mark as learned/unlearned"):
             selection_list = [item for item in data['CÔNG_VIỆC'].unique()]
             marked_learned = st.selectbox('Select a lecture to take action', selection_list)
